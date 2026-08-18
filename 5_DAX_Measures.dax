@@ -1,0 +1,54 @@
+/* ----------------------------------------------------
+   STEP 5: PROFESSIONAL DAX MEASURES
+---------------------------------------------------- */
+
+// 1. Total Sales
+Total Sales = SUM(EcommerceData[Sales])
+
+// 2. Total Profit
+Total Profit = SUM(EcommerceData[Profit])
+
+// 3. Profit Margin
+Profit Margin = DIVIDE([Total Profit], [Total Sales], 0)
+
+// 4. Average Order Value (AOV)
+AOV = DIVIDE([Total Sales], DISTINCTCOUNT(EcommerceData[Order_ID]))
+
+// 5. Total Orders
+Total Orders = DISTINCTCOUNT(EcommerceData[Order_ID])
+
+// 6. Year-over-Year (YoY) Sales Growth
+Sales YoY % = 
+VAR CurrentYearSales = [Total Sales]
+VAR PreviousYearSales = CALCULATE([Total Sales], SAMEPERIODLASTYEAR('Calendar'[Date]))
+RETURN
+DIVIDE(CurrentYearSales - PreviousYearSales, PreviousYearSales, 0)
+
+// 7. Month-over-Month (MoM) Growth
+Sales MoM % = 
+VAR CurrentMonthSales = [Total Sales]
+VAR PreviousMonthSales = CALCULATE([Total Sales], DATEADD('Calendar'[Date], -1, MONTH))
+RETURN
+DIVIDE(CurrentMonthSales - PreviousMonthSales, PreviousMonthSales, 0)
+
+// 8. Running Total Sales (YTD)
+Sales YTD = TOTALYTD([Total Sales], 'Calendar'[Date])
+
+// 9. Customer Lifetime Value (CLV - Simplified)
+// Average Order Value * Average Purchase Frequency
+Average Purchase Frequency = DIVIDE([Total Orders], DISTINCTCOUNT(EcommerceData[Customer_ID]))
+CLV = [AOV] * [Average Purchase Frequency]
+
+// 10. Dynamic Ranking of Products by Sales
+Product Sales Rank = 
+RANKX(
+    ALL(EcommerceData[Product_Name]), 
+    [Total Sales], 
+    , 
+    DESC, 
+    Dense
+)
+
+// 11. Discount Impact (Average Profit for discounted vs non-discounted)
+Avg Profit (Discounted) = CALCULATE(AVERAGE(EcommerceData[Profit]), EcommerceData[Discount] > 0)
+Avg Profit (No Discount) = CALCULATE(AVERAGE(EcommerceData[Profit]), EcommerceData[Discount] = 0)
